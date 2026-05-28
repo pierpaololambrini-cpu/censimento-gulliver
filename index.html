@@ -104,6 +104,10 @@ textarea{resize:vertical;min-height:80px}
 .plbl{flex:1}.plbl .pt{font-size:13px;font-weight:600;color:var(--navy)}.plbl .ps{font-size:11px;color:var(--gray)}
 .pcap{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:9px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
 .pcap.done{background:var(--green)}
+.photo-btns{display:flex;gap:6px;flex-shrink:0}
+.pbtn{border:none;border-radius:7px;padding:9px 11px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+.pbtn-cam{background:var(--navy);color:#fff}
+.pbtn-gal{background:var(--cream-dark);color:var(--navy)}
 .pprev{display:none;padding:0 14px 14px}
 .pprev.show{display:block}
 .pimg{width:100%;height:200px;object-fit:cover;border-radius:10px;border:1px solid var(--gray-light)}
@@ -178,7 +182,7 @@ input[type=file]{display:none}
 .csd-item.sel{color:var(--red);font-weight:700}
 /* PRINT */
 @media print{
-.header,.snav,.prog,.bnav,.toast,.egrid,.no-print,input[type=file]{display:none!important}
+.header,.snav,.prog,.bnav,.toast,.egrid,.no-print,input[type=file],.photo-btns,.pbtn{display:none!important}
 body{background:#fff;padding:0}
 .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;margin-bottom:8px}
 .section{display:block!important}
@@ -660,17 +664,25 @@ function buildPhotoList() {
       <div class="phdr">
         <div class="pdot${hasPh?' done':''}" id="pd_${p.id}"></div>
         <div class="plbl"><div class="pt">${p.lbl}${p.req?' <span style="color:var(--red)">*</span>':''}</div><div class="ps">${p.sub}</div></div>
-        <button class="pcap${hasPh?' done':''}" onclick="trigPh('${p.id}')">${hasPh?'✓ Fatto':'📷 Scatta'}</button>
+        ${hasPh
+          ? `<button class="pcap done">✓ Fatto</button>`
+          : `<div class="photo-btns">
+               <button class="pbtn pbtn-cam" onclick="trigPhCam('${p.id}')">📷 Camera</button>
+               <button class="pbtn pbtn-gal" onclick="trigPhGal('${p.id}')">🖼️ Libreria</button>
+             </div>`
+        }
       </div>
       <div class="pprev${hasPh?' show':''}" id="pp_${p.id}">
         ${hasPh?`<img class="pimg" id="pimg_${p.id}" src="${PHDATA[p.id]}" alt="${p.lbl}">
         <div class="pacts">
-          <button class="pact" onclick="trigPh('${p.id}')">🔄 Riprendi</button>
-          <a class="pact dl" id="pdl_${p.id}" href="${PHDATA[p.id]}" download="${photoFilename(p.id)}" onclick="toast('💾 Download avviato!')">💾 Salva foto</a>
+          <button class="pact" onclick="trigPhCam('${p.id}')">📷 Camera</button>
+          <button class="pact" onclick="trigPhGal('${p.id}')">🖼️ Libreria</button>
+          <a class="pact dl" id="pdl_${p.id}" href="${PHDATA[p.id]}" download="${photoFilename(p.id)}" onclick="toast('💾 Download avviato!')">💾 Salva</a>
           <button class="pact del" onclick="delPh('${p.id}')">🗑️</button>
         </div>`:'' }
       </div>
-      <input type="file" id="fi_${p.id}" accept="image/*" capture="environment" onchange="handlePh(event,'${p.id}')">`;
+      <input type="file" id="fi_cam_${p.id}" accept="image/*" capture="environment" onchange="handlePh(event,'${p.id}')">
+      <input type="file" id="fi_gal_${p.id}" accept="image/*" onchange="handlePh(event,'${p.id}')">`;
     list.appendChild(div);
   });
 }
@@ -681,7 +693,8 @@ function photoFilename(id) {
   return `Gulliver_N${n}_${city}_${id}.jpg`;
 }
 
-function trigPh(id) { document.getElementById('fi_' + id).click(); }
+function trigPhCam(id) { document.getElementById('fi_cam_' + id).click(); }
+function trigPhGal(id) { document.getElementById('fi_gal_' + id).click(); }
 function handlePh(e, id) {
   const f = e.target.files[0]; if (!f) return;
 
